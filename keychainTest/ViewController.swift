@@ -44,7 +44,7 @@ class ViewController: NSViewController {
         let updateQuery: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
                                           kSecAttrService as String: keychainService,
                                           kSecAttrAccount as String: serverHostname]
-         let newAttributes: [String: Any] = [kSecValueData as String: inputTextOutlet.stringValue.utf8]
+         let newAttributes: [String: Any] = [kSecValueData as String: inputTextOutlet.stringValue]
          let status = SecItemUpdate(updateQuery as CFDictionary, newAttributes as CFDictionary)
         statusLabel.stringValue = status.description
     }
