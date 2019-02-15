@@ -37,7 +37,12 @@ class ViewController: NSViewController {
                                        kSecValueData as String: inputTextOutlet.stringValue]
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         //let passwordData: NSData = inputTextOutlet.stringValue.data(using: String.Encoding.utf8, allowLossyConversion: false) as! NSData
-        statusLabel.stringValue = status.description
+        if let error = SecCopyErrorMessageString(status, nil) {
+            let errorString = String(error)
+            statusLabel.stringValue = errorString
+        } else {
+            statusLabel.stringValue = status.description
+        }
     }
     
     @IBAction func updateKeychainButton(_ sender: NSButton) {
@@ -46,7 +51,12 @@ class ViewController: NSViewController {
                                           kSecAttrAccount as String: serverHostname]
          let newAttributes: [String: Any] = [kSecValueData as String: inputTextOutlet.stringValue]
          let status = SecItemUpdate(updateQuery as CFDictionary, newAttributes as CFDictionary)
-        statusLabel.stringValue = status.description
+        if let error = SecCopyErrorMessageString(status, nil) {
+            let errorString = String(error)
+            statusLabel.stringValue = errorString
+        } else {
+            statusLabel.stringValue = status.description
+        }
     }
     
     @IBAction func getKeychainData(_ sender: NSButton) {
@@ -59,7 +69,13 @@ class ViewController: NSViewController {
         var rawResult: AnyObject?
         //var item: CFTypeRef?
         let status = SecItemCopyMatching(getQuery as CFDictionary, &rawResult)
-        statusLabel.stringValue = status.description
+        if let error = SecCopyErrorMessageString(status, nil) {
+            let errorString = String(error)
+            statusLabel.stringValue = errorString
+        } else {
+            statusLabel.stringValue = status.description
+        }
+
         //guard let existingItem = item as? [String : Any] else { return }
         
         guard let retrievedData = rawResult as? Data else { return }
@@ -81,7 +97,12 @@ class ViewController: NSViewController {
                                           kSecAttrService as String: keychainService,
                                           kSecAttrAccount as String: serverHostname]
         let status = SecItemDelete(deleteQuery as CFDictionary)
-        statusLabel.stringValue = status.description
+        if let error: CFString = SecCopyErrorMessageString(status, nil) {
+            let errorString = String(error)
+            statusLabel.stringValue = errorString
+        } else {
+            statusLabel.stringValue = status.description
+        }
     }
     
     @IBAction func clearLabels(_ sender: NSButton) {
