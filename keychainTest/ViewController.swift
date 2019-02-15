@@ -18,6 +18,7 @@ class ViewController: NSViewController {
     @IBOutlet weak var statusLabel: NSTextField!
     let keychainTest = "Keychain Test"
     let serverHostname = "mail.nowhere.com"
+    let keychainService = "KeychainService"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,55 +31,57 @@ class ViewController: NSViewController {
     }
     
     @IBAction func addKeychainButton(_ sender: NSButton) {
-        let addQuery: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
-                                       kSecAttrAccount as String: "fakeemail@nowhere.com",
-                                       kSecAttrServer as String: serverHostname,
-                                       kSecValueData as String: inputTextOutlet.stringValue,
-                                       kSecAttrProtocol as String: keychainTest]
+        let addQuery: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                       kSecAttrService as String: keychainService,
+                                       kSecAttrAccount as String: serverHostname,
+                                       kSecValueData as String: inputTextOutlet.stringValue]
         let status = SecItemAdd(addQuery as CFDictionary, nil)
+        //let passwordData: NSData = inputTextOutlet.stringValue.data(using: String.Encoding.utf8, allowLossyConversion: false) as! NSData
         statusLabel.stringValue = status.description
     }
     
     @IBAction func updateKeychainButton(_ sender: NSButton) {
-        
-        let updateQuery: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
-                                    kSecAttrServer as String: serverHostname]
-        
-        let newAttributes: [String: Any] = [kSecAttrAccount as String: "fakeemail@nowhere.com",
-                                         kSecValueData as String: inputTextOutlet.stringValue]
-        
-        let status = SecItemUpdate(updateQuery as CFDictionary, newAttributes as CFDictionary)
+        let updateQuery: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                          kSecAttrService as String: keychainService,
+                                          kSecAttrAccount as String: serverHostname]
+         let newAttributes: [String: Any] = [kSecValueData as String: inputTextOutlet.stringValue.utf8]
+         let status = SecItemUpdate(updateQuery as CFDictionary, newAttributes as CFDictionary)
         statusLabel.stringValue = status.description
     }
     
-    
     @IBAction func getKeychainData(_ sender: NSButton) {
         let getQuery: [String: Any] = [
-            kSecClass as String: kSecClassInternetPassword,
-            kSecAttrServer as String: serverHostname,
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: serverHostname,
             kSecMatchLimit as String: kSecMatchLimitOne,
-            kSecReturnAttributes as String: true,
-            kSecReturnData as String: true,
-            kSecAttrProtocol as String: keychainTest]
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(getQuery as CFDictionary, &item)
+            kSecReturnData as String: true]
+        var rawResult: AnyObject?
+        //var item: CFTypeRef?
+        let status = SecItemCopyMatching(getQuery as CFDictionary, &rawResult)
         statusLabel.stringValue = status.description
-        if let existingItem = item as? [String : Any],
-        let passwordData = existingItem[kSecValueData as String] as? Data,
-        let keychainPassword = String(data: passwordData, encoding: String.Encoding.utf8),
+        //guard let existingItem = item as? [String : Any] else { return }
+        
+        guard let retrievedData = rawResult as? Data else { return }
+        guard let pass = String(data: retrievedData, encoding: String.Encoding.utf8) else { return }
+        //guard let retrievedData = rawResult as? NSData else { return }
+        //guard let nspass = NSString(data: retrievedData as Data, encoding: String.Encoding.utf8.rawValue) else { return }
+        //let pass = String(nspass)
+        labelOutlet.stringValue = pass
+        //let passwordData = existingItem[kSecValueData as String] as? Data,
+/*        let keychainPassword = String(data: passwordData, encoding: String.Encoding.utf8),
             let keychainEmail = existingItem[kSecAttrAccount as String] as? String {
             labelOutlet.stringValue = "password \(keychainPassword) email \(keychainEmail)"
         } else {
             labelOutlet.stringValue = "Failure"
-        }
+        }*/
     }
     @IBAction func eraseKeychainData(_ sender: NSButton) {
-        let deleteQuery: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
-                                          kSecAttrProtocol as String: keychainTest]
-
+        let deleteQuery: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                          kSecAttrService as String: keychainService,
+                                          kSecAttrAccount as String: serverHostname]
         let status = SecItemDelete(deleteQuery as CFDictionary)
         statusLabel.stringValue = status.description
-
     }
     
     @IBAction func clearLabels(_ sender: NSButton) {
