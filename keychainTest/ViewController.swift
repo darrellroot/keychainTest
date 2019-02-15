@@ -28,15 +28,29 @@ class ViewController: NSViewController {
         // Update the view, if already loaded.
         }
     }
-    @IBAction func inputTextAction(_ sender: NSTextField) {
+    
+    @IBAction func addKeychainButton(_ sender: NSButton) {
         let addQuery: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                        kSecAttrAccount as String: "fakeemail@nowhere.com",
                                        kSecAttrServer as String: serverHostname,
-                                       kSecValueData as String: "ThisIsAPassword",
+                                       kSecValueData as String: inputTextOutlet.stringValue,
                                        kSecAttrProtocol as String: keychainTest]
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         statusLabel.stringValue = status.description
     }
+    
+    @IBAction func updateKeychainButton(_ sender: NSButton) {
+        
+        let updateQuery: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+                                    kSecAttrServer as String: serverHostname]
+        
+        let newAttributes: [String: Any] = [kSecAttrAccount as String: "fakeemail@nowhere.com",
+                                         kSecValueData as String: inputTextOutlet.stringValue]
+        
+        let status = SecItemUpdate(updateQuery as CFDictionary, newAttributes as CFDictionary)
+        statusLabel.stringValue = status.description
+    }
+    
     
     @IBAction func getKeychainData(_ sender: NSButton) {
         let getQuery: [String: Any] = [
